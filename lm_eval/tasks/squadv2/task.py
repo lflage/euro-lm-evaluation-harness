@@ -13,15 +13,16 @@ also determine when no answer is supported by the paragraph and abstain from ans
 
 Homepage: https://rajpurkar.github.io/SQuAD-explorer/
 """
-import datasets
 
-from math import exp
 from functools import partial
+from math import exp
+
+import datasets
 from packaging import version
 
-from lm_eval.api.task import Task
 from lm_eval.api.instance import Instance
-from lm_eval.api.registry import register_task
+from lm_eval.api.task import ConfigurableTask
+
 
 _CITATION = """
 @misc{rajpurkar2018know,
@@ -36,8 +37,9 @@ _CITATION = """
 
 
 def _squad_metric(predictions, references):
-    # squad_metric = load("squad_v2")
-    squad_metric = datasets.load_metric("squad_v2")
+    import evaluate
+
+    squad_metric = evaluate.load("squad_v2")
     return squad_metric.compute(predictions=predictions, references=references)
 
 
@@ -47,16 +49,18 @@ def _squad_agg(key, items):
     return _squad_metric(predictions=predictions, references=references).get(key, 0)
 
 
-@register_task("squadv2")
-class SQuAD2(Task):
+class SQuAD2(ConfigurableTask):
     VERSION = 3
     DATASET_PATH = "squad_v2"
     DATASET_NAME = None
 
+    def __init__(self, config=None):
+        super().__init__(config={"metadata": {"version": self.VERSION}})
+
     # HF changed squad on us so we have to make sure we aren't running the old one
-    assert version.parse(datasets.__version__) >= version.parse(
-        "1.11.0"
-    ), "datasets v1.11.0 or later required for SQuAD"
+    assert version.parse(datasets.__version__) >= version.parse("1.11.0"), (
+        "datasets v1.11.0 or later required for SQuAD"
+    )
 
     def has_training_docs(self):
         return True
@@ -101,7 +105,9 @@ class SQuAD2(Task):
             answer = "unanswerable"
         return " " + answer
 
-    def construct_requests(self, doc, ctx, **kwargs):
+    def construct_requests(
+        self, doc, ctx, chat_template=None, apply_chat_template=False, **kwargs
+    ):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 

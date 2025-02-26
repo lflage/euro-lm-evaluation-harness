@@ -1,12 +1,14 @@
 import argparse
+import logging
 import os
 
 import yaml
 from promptsource.templates import DatasetTemplates
 from tqdm import tqdm
 
+
 # from lm_eval.api.registry import ALL_TASKS
-from lm_eval.logger import eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 # from lm_eval.tasks import include_task_folder
@@ -23,7 +25,7 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
 
-    with open(args.benchmark_path) as file:
+    with open(args.benchmark_path, encoding="utf-8") as file:
         TASK_LIST = yaml.full_load(file)
         for task in tqdm(TASK_LIST):
             eval_logger.info(f"Processing {task}")
@@ -57,5 +59,5 @@ if __name__ == "__main__":
 
                 file_save_path = os.path.join(file_path, full_file_name)
                 eval_logger.info(f"Save to {file_save_path}")
-                with open(file_save_path, "w") as yaml_file:
+                with open(file_save_path, "w", encoding="utf-8") as yaml_file:
                     yaml.dump(config_dict, yaml_file)

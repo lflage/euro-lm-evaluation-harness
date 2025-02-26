@@ -38,7 +38,7 @@ def get_train_overlap(docs_by_task_set: dict, ngrams_path: str, limit: int) -> d
     # return get_train_overlap_stub(docs, ngrams_path, ngrams_n_size)
 
     info_dict_path = os.path.join(ngrams_path, "info.json")
-    info_dict = json.load(open(info_dict_path, "r"))
+    info_dict = json.load(open(info_dict_path, "r", encoding="utf-8"))
     ngrams_n_size = info_dict["ngram_size"]
 
     janitor = Janitor()
@@ -151,7 +151,7 @@ def get_train_overlap(docs_by_task_set: dict, ngrams_path: str, limit: int) -> d
 
             elapsed = time.perf_counter() - start
             print(f"Read took {elapsed:0.5f} seconds.")
-            print(f"Speed: {(os.path.getsize(file)/1000000.0)/elapsed}MB/second")
+            print(f"Speed: {(os.path.getsize(file) / 1000000.0) / elapsed}MB/second")
 
         print(duplicates)
 

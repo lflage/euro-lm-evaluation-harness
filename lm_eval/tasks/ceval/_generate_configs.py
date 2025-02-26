@@ -1,13 +1,15 @@
 """
 Take in a YAML, and output all other splits with this YAML
 """
-import os
-import yaml
-import argparse
 
+import argparse
+import os
+
+import yaml
 from tqdm import tqdm
 
-from lm_eval.logger import eval_logger
+from lm_eval.utils import eval_logger
+
 
 SUBJECTS = {
     "computer_network": "计算机网络",
@@ -79,13 +81,13 @@ if __name__ == "__main__":
 
     # get filename of base_yaml so we can `"include": ` it in our other YAMLs.
     base_yaml_name = os.path.split(args.base_yaml_path)[-1]
-    with open(args.base_yaml_path) as f:
+    with open(args.base_yaml_path, encoding="utf-8") as f:
         base_yaml = yaml.full_load(f)
 
     if args.cot_prompt_path is not None:
         import json
 
-        with open(args.cot_prompt_path) as f:
+        with open(args.cot_prompt_path, encoding="utf-8") as f:
             cot_file = json.load(f)
 
     for subject_eng, subject_zh in tqdm(SUBJECTS.items()):
@@ -107,7 +109,7 @@ if __name__ == "__main__":
 
         file_save_path = args.save_prefix_path + f"_{subject_eng}.yaml"
         eval_logger.info(f"Saving yaml for subset {subject_eng} to {file_save_path}")
-        with open(file_save_path, "w") as yaml_file:
+        with open(file_save_path, "w", encoding="utf-8") as yaml_file:
             yaml.dump(
                 yaml_dict,
                 yaml_file,
@@ -115,3 +117,26 @@ if __name__ == "__main__":
                 allow_unicode=True,
                 default_style='"',
             )
+
+    # write group config out
+
+    group_yaml_dict = {
+        "group": "ceval-valid",
+        "task": [f"ceval-valid_{task_name}" for task_name in SUBJECTS.keys()],
+        "aggregate_metric_list": [
+            {"metric": "acc", "aggregation": "mean", "weight_by_size": True},
+            {"metric": "acc_norm", "aggregation": "mean", "weight_by_size": True},
+        ],
+        "metadata": {"version": 1.0},
+    }
+
+    file_save_path = "_" + args.save_prefix_path + ".yaml"
+
+    with open(file_save_path, "w", encoding="utf-8") as group_yaml_file:
+        yaml.dump(
+            group_yaml_dict,
+            group_yaml_file,
+            width=float("inf"),
+            allow_unicode=True,
+            default_style='"',
+        )

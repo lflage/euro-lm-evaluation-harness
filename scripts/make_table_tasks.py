@@ -2,6 +2,7 @@
 Usage:
    python make_table_tasks.py --output <markdown_filename>
 """
+
 import argparse
 import logging
 
@@ -10,7 +11,6 @@ from pytablewriter import MarkdownTableWriter
 from lm_eval import tasks
 
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -50,5 +50,5 @@ if __name__ == "__main__":
         values.append(v)
     writer.value_matrix = values
     table = writer.dumps()
-    with open(args.output, "w") as f:
+    with open(args.output, "w", encoding="utf-8") as f:
         f.write(table)
